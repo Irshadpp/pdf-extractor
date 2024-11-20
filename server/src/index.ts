@@ -5,15 +5,15 @@ import { json } from "body-parser";
 import { appRouter } from "./app/routes";
 import errorHandler from "./app/middleware/error-handler";
 import { CustomError } from "./app/utils/custom-error";
+import path from "path"
 
 const app = express();
 
-const router = express.Router();
-
 app.use(cors());
 app.use(json());
+app.use("/uploads", express.static(path.resolve("src/uploads")));
 
-router.use("/api/v1", appRouter);
+app.use("/api/v1", appRouter);
 
 app.all("*", () => {
   throw new CustomError("Not found", 404);

@@ -1,9 +1,16 @@
 import express from "express";
+import { upload } from "../utils/multer-handler";
+import { downloadPdf, extractPdfPages, uploadPdf } from "../controller/pdf.controller";
 
 const router = express.Router();
+  
+router.post("/upload",upload.single("file"), uploadPdf);
 
-router.get("/",);
-router.post("/",);
-router.get("/",);
+router.post("/extract", extractPdfPages);
+
+router.get("/download/:fileName", downloadPdf);
+
+//todo after authentication
+// router.get("/",getPdf);
 
 export {router as PdfRouter};
