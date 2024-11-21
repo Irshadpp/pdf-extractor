@@ -8,6 +8,8 @@ router.post("/upload",upload.single("file"), uploadPdf);
 
 router.post("/extract", extractPdfPages);
 
+// router.get("/download/:fileName", downloadPdf);
+
 //todo after authentication
 // router.get("/",getPdf);
 
