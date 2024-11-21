@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { CustomError } from "../utils/custom-error";
 import path from "path";
 import fs from "fs";
-import { PDFDocument } from "pdf-lib";
+import {PDFDocument} from "pdf-lib";
 
 export const uploadPdf = (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -15,9 +15,9 @@ export const uploadPdf = (req: Request, res: Response, next: NextFunction) => {
 
     res.status(200).json({
       message: "File uploaded successfully",
-      fileName: req.file.filename,
-      filePath: filePath,
-      fileData: `data:application/pdf;base64,${fileData}`, // Base64 representation for frontend preview
+        fileName: req.file.filename,
+        filePath: filePath,
+        fileData: `data:application/pdf;base64,${fileData}`, // Base64 representation for frontend preview
     });
   } catch (error: any) {
     console.log(error);
@@ -31,20 +31,24 @@ export const extractPdfPages = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { fileName, pageIndexes } = req.body;
+    const { fileName, pageNumbers } = req.body;
 
-    if (!fileName || !Array.isArray(pageIndexes)) {
-      throw new CustomError("File name and page indexes are required", 400);
+    if (!fileName || !Array.isArray(pageNumbers)) {
+     throw new CustomError("File name and page indexes are required",400);
     }
 
     const filePath = path.resolve("src/uploads", fileName);
 
     if (!fs.existsSync(filePath)) {
-      throw new CustomError("PDF file not found", 404);
+      throw new CustomError("PDF file not found", 404)
     }
     // Read the existing PDF
     const existingPdf = fs.readFileSync(filePath);
     const pdfDoc = await PDFDocument.load(existingPdf);
+
+    //calculating the indexes
+    const pageIndexes = pageNumbers.map(num => num - 1);
+    console.log(pageIndexes)
 
     // Create a new PDF with selected pages
     const newPdf = await PDFDocument.create();
@@ -60,14 +64,15 @@ export const extractPdfPages = async (
     const newPdfPath = path.resolve("src/uploads", newPdfName);
     fs.writeFileSync(newPdfPath, newPdfBytes);
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "attachment; filename=extracted.pdf");
-
-    // Send the extracted PDF as a Buffer
-    const readStream = fs.createReadStream(newPdfPath);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", "attachment; filename=extracted.pdf");
+  
+      // Send the extracted PDF as a Buffer
+      const readStream = fs.createReadStream(newPdfPath);
     readStream.pipe(res);
   } catch (error: any) {
-    next(error);
+    next(error)
   }
 };
+
 

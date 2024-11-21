@@ -13,12 +13,11 @@ const Home: React.FC = () => {
     }
     try {
       const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/v1/pdf/extract`, {
-        pageIndexes: selectedPages,
-          fileName: fileData.fileName, 
+        pageNumbers: selectedPages,
+        fileName: fileData.fileName, 
       },
       { responseType: "arraybuffer" });
 
-     // Convert the binary response to a Blob
      console.log(response.data)
      if (response.data.byteLength <= 0) {
       throw new Error("Received invalid PDF data");

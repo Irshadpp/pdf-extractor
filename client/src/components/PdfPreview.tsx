@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import "pdfjs-dist/build/pdf.worker.entry";
+import useBeforeReload from "../hooks/useBeforeReload";
 
 const PdfPageSelector = ({ fileData, downloadLink, onExtract }: { fileData: string; downloadLink: string; onExtract: (pages: number[]) => void }) => {
+    useBeforeReload("Are you sure you want to refresh this page? The PDF you've uploaded will be lost.");
     const [pages, setPages] = useState<string[]>([]);
     const [selectedPages, setSelectedPages] = useState<number[]>([]);
 
@@ -19,8 +21,15 @@ const PdfPageSelector = ({ fileData, downloadLink, onExtract }: { fileData: stri
                 canvas.height = viewport.height;
                 canvas.width = viewport.width;
 
-                await page.render({ canvasContext: context, viewport }).promise;
-                renderedPages.push(canvas.toDataURL());
+                if (context) {
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+    
+                    await page.render({ canvasContext: context, viewport }).promise;
+                    renderedPages.push(canvas.toDataURL());
+                } else {
+                    console.error("Failed to get 2D context for canvas on page", i);
+                }
             }
 
             setPages(renderedPages);
@@ -36,7 +45,6 @@ const PdfPageSelector = ({ fileData, downloadLink, onExtract }: { fileData: stri
                 : [...prev, index]
         );
     };
-    console.log(selectedPages)
 
     const handleExtract = () => {
         onExtract(selectedPages);
@@ -63,6 +71,24 @@ const PdfPageSelector = ({ fileData, downloadLink, onExtract }: { fileData: stri
                         <p className="absolute bottom-2 left-2 text-white text-sm bg-black bg-opacity-50 p-1 rounded-md">
                             Page {index + 1}
                         </p>
+                        {selectedPages.includes(index + 1) && (
+                            <div className="absolute top-2 right-2 bg-green-500 text-white p-2 rounded-full shadow-md">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
@@ -78,18 +104,22 @@ const PdfPageSelector = ({ fileData, downloadLink, onExtract }: { fileData: stri
                         </button>
                     </div>
                 )}
-                 {downloadLink && (
-            <a
-                href={downloadLink}
-                download
-                className="mt-4 inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-                Download Extracted PDF
-            </a>
-        )}
+                {downloadLink && (
+                    <a
+                        href={downloadLink}
+                        download
+                        className="mt-4 inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                        Download Extracted PDF
+                    </a>
+                )}
             </div>
         </div>
     );
 };
 
 export default PdfPageSelector;
+
+
+
+
